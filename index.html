@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.2/dropzone.css" integrity="sha512-7uSoC3grlnRktCWoO4LjHMjotq8gf9XDFQerPuaph+cqR7JC9XKGdvN+UwZMC14aAaBDItdRj3DcSDs4kMWUgg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<style>
+html,body {
+  text-align:center;
+}
+#viewpredictions {
+  width:80%;
+  max-width:500px;
+      margin: 0 auto 0;
+}
+#mydropz {
+width: 80%;
+    max-width: 500px;
+    margin: 0 auto 0;
+    border-radius: 20px;
+    border: 2px dotted #070067;
+}
+</style>
+</head>
+<body>
+
+<form action="/file-upload" class="dropzone" id="mydropz">
+  <div id="preview"></div>
+</form>
+
+<div id="viewpredictions">
+  <h2>Predictions</h2>
+  <div id="displaypredictions"></div>
+</div>
+
+<!-- Load TensorFlow.js. This is required to use MobileNet. -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.7.0/dist/tf.min.js"></script>
+<!-- Load the MobileNet model. -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.0/dist/mobilenet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.2/dropzone.js" integrity="sha512-4p9OjnfBk18Aavg91853yEZCA7ywJYcZpFt+YB+p+gLNPFIAlt2zMBGzTxREYh+sHFsttK0CTYephWaY7I3Wbw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script>
+function predict() {
+  const img = document.getElementById('uploadedimage');
+  // Load the model.
+  mobilenet.load().then(model => {
+    // Classify the image.
+    model.classify(img).then(predictions => {
+      console.log('Predictions: ');
+      console.log(predictions);
+      const target = document.getElementById("displaypredictions");
+      var list = predictions[0].className + " ----- Probabilty: " + predictions[0].probability + "<br>" + 
+                    predictions[1].className + " ----- Probabilty: " + predictions[1].probability + "<br>" + 
+                    predictions[2].className + " ----- Probabilty: " + predictions[2].probability;
+      target.innerHTML = list;
+    });
+  });
+}
+
+Dropzone.options.mydropz = {
+    autoProcessQueue: true,
+    dictDefaultMessage: "Click or drop image files to see MobileNet predictions",
+    init: function (e) {
+        var myDropzone = this;
+        myDropzone.on("complete", function(file) {
+            // console.log(file);
+            // console.log(file.dataURL);
+            const target = document.getElementById("preview");
+            const img = document.createElement("img");
+            img.srcObject=file.dataURL;
+            target.innerHTML = `<img id="uploadedimage" width='400px' height='auto' 
+            src='${img.srcObject}'/>`;            
+            predict();
+            // setTimeout(function(){ 
+              myDropzone.removeFile(file);
+            // }, 1000);
+        });
+    }
+};
+</script>
+</body>
+</html>
